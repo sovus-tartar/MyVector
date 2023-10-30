@@ -36,6 +36,7 @@ namespace MyVector
         vector(vector<T> && src) noexcept//move ctr
         {
             std::cout << "Move ctr called" << std::endl;
+            data = nullptr;
 
             std::swap(data, src.data);
             std::swap(size, src.size);
@@ -44,19 +45,25 @@ namespace MyVector
         vector<T> & operator=(const vector<T> & src) //copy assign
         {
             std::cout << "Copy assign called" << std::endl;
+            delete[] data;
+
             size = src.size;
             data = new T[size];
             std::copy(src.data, src.data + size, data);
+
+            return *this;
         } 
 
-        vector<T> & operator=(const vector<T> && src) noexcept //move assign
+        vector<T> & operator=(vector<T> && src) noexcept //move assign
         { 
             std::cout << "Move assign called" << std::endl;
             std::swap(data, src.data);
             std::swap(size, src.size);
+
+            return *this;
         }
 
-        T& access(unsigned i)
+        T& access(const unsigned i) &
         {
             if (i >= size)
                 throw std::out_of_range("Index i is out of range of this vector\n");
@@ -64,9 +71,35 @@ namespace MyVector
             return data[i];
         }
 
-        T& operator[](unsigned i)
+        const T& access(const unsigned i) const &
         {
+            if (i >= size)
+                throw std::out_of_range("Index i is out of range of this vector\n");
+
             return data[i];
+        }
+
+        const T access(const unsigned i) && 
+        {
+            if (i >= size)
+                throw std::out_of_range("Index i is out of range of this vector\n");
+
+            return data[i];
+        }
+
+        T& operator[](const unsigned i) &
+        {
+            return access(i);
+        }
+
+        T operator[](const unsigned i) const &
+        {
+            return access(i);
+        }
+
+        T operator[](const unsigned i) &&
+        {
+            return access(i);
         }
 
         void print()
@@ -82,6 +115,30 @@ namespace MyVector
         const unsigned len()
         {
             return size;
+        }
+
+        bool operator==(const vector<T> & rhs)
+        {
+            if(size != rhs.size)
+                return false;
+
+            for(int i = 0; i < size; ++i)
+                if(access(i) != rhs[i])
+                    return false;
+
+            return true;
+        }
+
+        bool operator==(const vector<T> && rhs)
+        {
+            if(size != rhs.size)
+                return false;
+
+            for(int i = 0; i < size; ++i)
+                if(access(i) != rhs[i])
+                    return false;
+
+            return true;
         }
 
     };
